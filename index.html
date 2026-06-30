@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>State by State Golf | Hayley & Jim</title>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JC3D1DPBFC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JC3D1DPBFC');
+</script>
+
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -144,6 +154,19 @@
     font-size: 0.78rem;
     margin-top: 2rem;
   }
+
+  .visitor-counter {
+    margin-top: 1.2rem;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .visitor-counter .stat-number {
+    font-size: 1.8rem;
+  }
+  .visitor-counter .stat-label {
+    margin-top: 0.15rem;
+  }
 </style>
 </head>
 <body>
@@ -195,6 +218,10 @@
 
 <footer>
   <p>Hayley & Jim &middot; State by State Golf Challenge &middot; @statebystategolf</p>
+  <div class="visitor-counter">
+    <div class="stat-number" id="page-view-count">&mdash;</div>
+    <div class="stat-label">Page Views</div>
+  </div>
 </footer>
 
 <div class="map-tooltip" id="map-tooltip"></div>
@@ -286,6 +313,40 @@ d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(us => {
     .style('pointer-events','none')
     .attr('fill','#0f2027');
 });
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import {
+    getFirestore, doc, getDoc, updateDoc, increment
+  } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBSaeIcsTUayLEch9clREGG6h5Sl2AP9co",
+    authDomain: "state-by-state-golf.firebaseapp.com",
+    projectId: "state-by-state-golf",
+    storageBucket: "state-by-state-golf.firebasestorage.app",
+    messagingSenderId: "507849514481",
+    appId: "1:507849514481:web:3bf657cdad66650e683850"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const counterRef = doc(db, "counters", "pageViews");
+
+  async function trackPageView() {
+    try {
+      await updateDoc(counterRef, { count: increment(1) });
+      const snap = await getDoc(counterRef);
+      const count = snap.exists() ? snap.data().count : null;
+      document.getElementById('page-view-count').textContent =
+        count !== null ? count.toLocaleString() : '—';
+    } catch (err) {
+      console.error('Page view tracking failed:', err);
+    }
+  }
+
+  trackPageView();
 </script>
 </body>
 </html>
