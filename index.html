@@ -34,6 +34,31 @@
   .card-course { font-size: 1rem; font-weight: bold; color: #f0ece0; margin-bottom: 0.2rem; line-height: 1.3; }
   .card-city { font-size: 0.82rem; color: #a8c5a0; margin-bottom: 0.5rem; }
   .card-date { font-size: 0.78rem; color: #7a9e8a; }
+  .also-played-toggle {
+    margin-top: 0.75rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid #2d5a3d;
+    font-size: 0.75rem;
+    color: #c8a951;
+    cursor: pointer;
+    user-select: none;
+    display: inline-block;
+  }
+  .also-played-toggle:hover { color: #e8c96a; }
+  .also-played-list {
+    display: none;
+    margin-top: 0.6rem;
+    padding-top: 0.5rem;
+  }
+  .also-played-list.open { display: block; }
+  .also-played-entry {
+    padding: 0.45rem 0;
+    border-bottom: 1px solid #1a3a2a;
+  }
+  .also-played-entry:last-child { border-bottom: none; }
+  .also-entry-course { font-size: 0.82rem; color: #d4c090; font-weight: bold; line-height: 1.3; }
+  .also-entry-city { font-size: 0.75rem; color: #7a9e8a; }
+  .also-entry-date { font-size: 0.72rem; color: #5a7e6a; margin-top: 0.1rem; }
   .map-tooltip { position: fixed; background: #1a3a2a; border: 1px solid #c8a951; border-radius: 6px; padding: 8px 12px; font-size: 12px; font-family: Georgia, serif; color: #f0ece0; pointer-events: none; display: none; z-index: 999; line-height: 1.5; }
   footer { text-align: center; padding: 2rem 1rem; border-top: 1px solid #2d5a3d; color: #4a7c59; font-size: 0.78rem; margin-top: 2rem; }
 </style>
@@ -80,7 +105,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 <script>
 const courses = [
-  { state:"New York",       course:"Stonebridge Country Club",          city:"Smithtown",         date:"August 29, 2026" },
   { state:"Pennsylvania",   course:"Saucon Valley Weyhill Course",      city:"Bethlehem",         date:"July 31, 2024" },
   { state:"Connecticut",    course:"Keney Park Golf Course",            city:"Windsor",           date:"August 12, 2024" },
   { state:"Massachusetts",  course:"Springfield Country Club",          city:"West Springfield",  date:"August 13, 2024" },
@@ -96,6 +120,11 @@ const courses = [
   { state:"Vermont",        course:"Ekwanok Country Club",              city:"Manchester",        date:"August 14, 2026" },
   { state:"New Hampshire",  course:"The Golf Club of New England",      city:"Stratham",          date:"August 15, 2026" },
   { state:"Maine",          course:"Cape Arundel Golf Club",            city:"Kennebunkport",     date:"August 16, 2026" },
+  { state:"New York",       course:"Stonebridge Country Club",          city:"Smithtown",         date:"August 29, 2026",
+    alsoPlayed: [
+      { course:"Friar's Head Golf Club", city:"Riverhead", date:"September 12, 2026" }
+    ]
+  },
 ];
 
 const playedNames = new Set(courses.map(c => c.state));
@@ -107,11 +136,30 @@ const grid = document.getElementById('course-grid');
 courses.forEach(c => {
   const card = document.createElement('div');
   card.className = 'course-card';
+
+  let alsoHtml = '';
+  if (c.alsoPlayed && c.alsoPlayed.length > 0) {
+    const entries = c.alsoPlayed.map(a => `
+      <div class="also-played-entry">
+        <div class="also-entry-course">${a.course}</div>
+        <div class="also-entry-city">${a.city}</div>
+        <div class="also-entry-date">&#128197; ${a.date}</div>
+      </div>
+    `).join('');
+    alsoHtml = `
+      <div class="also-played-toggle" onclick="this.nextElementSibling.classList.toggle('open'); this.textContent = this.nextElementSibling.classList.contains('open') ? '▲ hide extra rounds' : '+ ${c.alsoPlayed.length} more round${c.alsoPlayed.length > 1 ? 's' : ''} ▼'">
+        + ${c.alsoPlayed.length} more round${c.alsoPlayed.length > 1 ? 's' : ''} ▼
+      </div>
+      <div class="also-played-list">${entries}</div>
+    `;
+  }
+
   card.innerHTML = `
     <div class="card-state">${c.state}</div>
     <div class="card-course">${c.course}</div>
     <div class="card-city">${c.city}</div>
     <div class="card-date">&#128197; ${c.date}</div>
+    ${alsoHtml}
   `;
   grid.appendChild(card);
 });
